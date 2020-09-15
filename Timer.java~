@@ -1,0 +1,19 @@
+Timer timer = new Timer();
+TimerTask task = new TimerTask();
+
+class Timer{
+    private int secondsLeft = 40;
+    
+    public void start(){
+      gameTimer.scheduleAtFixedRate();
+  }
+  
+  public void run(){
+      timeLeft--;
+  }
+  
+  public int getTimeLeft(){
+      return this.secondsLeft;
+  }
+    
+}

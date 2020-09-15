@@ -1,0 +1,69 @@
+/**
+ * MapTile.java
+ * Sasha Barazandeh
+ * 2020-01-11
+ */
+import java.awt.Graphics;
+import java.awt.Rectangle;
+import java.awt.image.BufferedImage;
+import javax.imageio.ImageIO;
+import java.io.File;
+import java.awt.Color;
+public class MapTile implements GameConstants {
+    public int x;
+    public int y;
+    public Rectangle hitBox;
+    public int height;
+    public int width;
+    private boolean hasCoin;
+    public BufferedImage img;
+    public MapTile() {
+        //Only here because outerwall cant call its own constructor without a void constructor method 
+    }
+    public MapTile(int xPos, int yPos, boolean isCoinTile) { 
+        this.x = xPos;
+        this.y = yPos;
+        this.hasCoin = isCoinTile;
+        loadImage();
+        this.width = BOX_W; //this.img.getWidth();
+        this.height = BOX_H; //this.img.getHeight();
+        this.hitBox = new Rectangle(this.x, this.y, this.width, this.height);
+    }
+    public Rectangle getRect() {
+        return this.hitBox;
+    }
+    public int getX() {
+        return this.x;
+    }
+    public int getY() {
+        return this.y;
+    }
+    public void loadImage() {
+        if (this.hasCoin == true) {
+            try {
+                this.img = ImageIO.read(new File("images/coin.png"));
+            }catch(Exception e) {System.out.println("Error loading image in MAPTILE");}
+        }else {
+            try {
+                this.img = ImageIO.read(new File("images/walkable.png"));
+            }catch(Exception e) {System.out.println("Error loading image in MAPTILE");}
+        }
+    }
+    public boolean getIfHasCoin() {
+        return this.hasCoin; 
+    }
+    
+    public void removeCoin() {
+        this.hasCoin = false;
+        loadImage();
+    }
+    
+    public String toString() {
+        String returnStr = "X. Y. W. H " + this.x + " " + this.y + " " +this.width + " " + this.height;
+        return returnStr;
+    }
+    
+    public void draw(Graphics g) {
+        g.drawImage(this.img, this.x, this.y, null);
+    }
+}

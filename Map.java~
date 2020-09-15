@@ -1,0 +1,241 @@
+/**
+ * Map.java
+ * Sasha Barazandeh
+ * 2020-01-11
+ */
+import java.awt.Graphics;
+import java.awt.Color;
+import java.util.Scanner;
+import java.awt.Rectangle;
+import java.io.File;
+import java.io.FileNotFoundException;
+public class Map implements GameConstants{
+    private int width;
+    private int height;
+    private int totalCoinsLeft;
+    private MapTile tile;
+    private OuterWall border;
+    private File textFileMap;
+    private Scanner readFile;
+    private MapTile [][] map;
+    
+    /* Map
+     *  @param int xRes
+     *  @param int yRes
+     *  Constructor for the map class
+     */
+    public Map(int xRes, int yRes) { 
+        this.width = xRes;
+        this.height = yRes;
+    }  
+    /* readMap
+     * @Param String fileName
+     *  Method that reads the map from the textfile
+     */
+    public void readMap(String fileName) {
+        int mapWidth = 0;
+        int mapLength = 0; //this is just to initialize them to avoid the 'may not haveb een initialized error'
+        try {
+            textFileMap = new File(fileName+".txt");
+            readFile = new Scanner (textFileMap);  
+        }//end try
+        catch (FileNotFoundException e) {
+            System.out.println("Caught it!");
+        }
+        String temp = "";
+        while (readFile.hasNext()) {
+            //read each line and process each line 
+            mapLength++;
+            mapWidth = getWidth(readFile.nextLine());
+        }
+        readFile.close();
+        map = new MapTile[mapLength][mapWidth];
+        
+        try{
+            readFile = new Scanner(textFileMap);
+        }catch (Exception e){
+            System.out.println("Caught it!");
+        }
+        int row = 0;
+        while (readFile.hasNext()) { 
+            processMapLine(row, readFile.nextLine());
+            row++;
+        }
+    }
+    
+    /* getArray
+     *  @returns [][] map
+     *  getter method that returns the map array
+     */
+    public MapTile[][] getArray() {
+        return this.map;
+    }
+    /* findWidth
+     *  @returns int line.length()
+     *  returns width
+     */
+    private int getWidth(String line) {
+        return line.length();
+    }
+    
+    
+    public int countLeft(MapTile t, int xPosInArray, int yPosInArray, Enemy enemy, Player player) {
+        int count = 0;
+        boolean endCount = false;
+        while (endCount == false) {
+            if ((enemy.checkCollidedWith(t.getRect())) || (player.checkPlayerWallCollision(t.getRect()))) {
+                endCount = true;
+                count-= 2; // THIS MUST BE HERE in order to compensate for enemy speed. Since the enemy speed moves at a rate of less than 20, the collision
+                // will not detect that the enemy is there, since at the time of counting tiles, the enemy's hitbox does not yet intersect with anything and
+                // as a result cannot be found. This means that we must subtract 2 tiles just incase so as to not spawn a block over the enemy.
+            }
+            if(!(t instanceof OuterWall))  {
+                count++;
+                xPosInArray--;
+                t = map[xPosInArray][yPosInArray];
+            }else {
+                endCount = true;
+                count--;
+            }
+        }
+        return count;
+    }
+    
+    public int countRight(MapTile t, int xPosInArray, int yPosInArray, Enemy enemy, Player player) {
+        int count = 0;
+        boolean endCount = false;
+        while (endCount == false) {
+            if ((enemy.checkCollidedWith(t.getRect())) || (player.checkPlayerWallCollision(t.getRect()))) {
+                endCount = true;
+                count-= 2;
+            }
+            if (!(t instanceof OuterWall)) {
+                count++;
+                xPosInArray++;
+                t = map[xPosInArray][yPosInArray];
+            }else {
+                endCount = true;
+                count--;
+            }
+        }
+        return count;
+    }
+    public int countUp(MapTile t, int xPosInArray, int yPosInArray, Enemy enemy, Player player) {
+        int count = 0;
+        boolean endCount = false;
+        while(endCount == false) {
+            if ((enemy.checkCollidedWith(t.getRect())) || (player.checkPlayerWallCollision(t.getRect()))) {
+                endCount = true;
+                count-= 2;
+            }
+            if (!(t instanceof OuterWall)) {
+                count++;
+                yPosInArray--;
+                t = map[xPosInArray][yPosInArray];
+            }else {
+                endCount = true;
+                count--;
+            }
+        }
+        return count;
+    }
+    
+    public int countDown(MapTile t, int xPosInArray, int yPosInArray, Enemy enemy, Player player) {
+        int count = 0;
+        boolean endCount = false;
+        while (endCount == false) {
+            if ((enemy.checkCollidedWith(t.getRect())) || (player.checkPlayerWallCollision(t.getRect()))) {
+                endCount = true;
+                count-= 2;
+            }
+            if (!(t instanceof OuterWall))  {
+                count++;
+                yPosInArray++;
+                t = map[xPosInArray][yPosInArray];
+            }else {
+                endCount = true;
+                count--;
+            }
+        }
+        //System.out.println("This is in count down, you are facing the right direction");
+        return count;
+    }
+    
+    ///CHANGE THE XPOSINARRAY AND YPOSINARRY TO LESS CONFUSING NAMES
+    //ALSO ACCOUNT FOR THE LOOP COUNTING THE PLAYERS TILE AS WELL, DONT JUST DO A -1 TACTIC, MAKE SURE YOU FIGURE OUT A WAY TO DISCOUNT IT
+    public int countTiles(Enemy enemy, Player player) {
+        int tilesNum = 0;
+        for (int i = 0; i < this.map.length; i++) {
+            for (int k = 0; k < this.map[0].length; k++) {
+                if ((map[i][k].getRect()).intersects(player.getHitBox())) {
+                    if (player.getDir().equals("left")){
+                        tilesNum = countLeft(map[i][k], i, k, enemy, player);
+                    }else if(player.getDir().equals("right")) {
+                        tilesNum = countRight(map[i][k], i, k, enemy, player);
+                    }else if(player.getDir().equals("up")) {
+                        tilesNum = countUp(map[i][k], i, k, enemy, player);
+                    }else {
+                        tilesNum = countDown(map[i][k], i, k, enemy, player);
+                        //  System.out.println(tilesNum + " In count tiles method");
+                    }
+                }
+            }
+        }
+        return tilesNum;  
+    }
+    
+    public void processMapLine(int row, String line) {
+        for (int i = 0; i < line.length(); i++) {  
+            if (line.charAt(i) == WALL) {
+                map[row][i] =  new OuterWall(row*this.BOX_W, i*this.BOX_H);
+            }else if (line.charAt(i) == WALKABLE) {
+                map[row][i] = new MapTile(row*this.BOX_W, i*this.BOX_H, false);
+            }else if (line.charAt(i) == COIN) {
+                map[row][i] = new MapTile(row*this.BOX_W, i*this.BOX_H, true);
+                this.totalCoinsLeft++;
+            }
+        }
+    }
+    
+ //-----------------------------------------------     
+    //getters
+    public int totalCoinsLeft() {
+        return this.totalCoinsLeft;
+    }
+//-----------------------------------------------      
+    public boolean checkCollidedWithWall(Rectangle otherHitBox) {
+//if the current position ( y coords) has a buildingblockrectangle over it, return null
+        for (int i = 0; i < map.length; i++) {
+            for (int z = 0; z < map[i].length; z++) {
+                if((map[i][z] instanceof OuterWall)){
+                    if ((map[i][z].getRect().intersects(otherHitBox))) {       
+                        return true;
+                    }
+                }
+            }
+        } 
+        return false;
+    }
+    
+    public void checkCoinCollected(Rectangle playerHitBox) {
+        for (int i = 0; i < this.map.length; i++) {
+            for (int k = 0; k < this.map[0].length; k++) {
+                if(map[i][k] != null){
+                    if (((map[i][k].getRect()).intersects(playerHitBox)) && (map[i][k].getIfHasCoin())) {//player hitbox is gone for a second edit later
+                        map[i][k].removeCoin();
+                        this.totalCoinsLeft--;
+                    }
+                }
+            }
+        }
+    }
+    
+//-----------------------------------------------  
+    public void draw(Graphics g) {
+        for(int i = 0; i < map.length; i++) {
+            for(int z = 0; z < map[0].length; z++) {
+                map[i][z].draw(g);
+            }
+        }
+    }//end draw();
+}

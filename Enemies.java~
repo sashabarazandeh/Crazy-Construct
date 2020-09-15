@@ -1,0 +1,12 @@
+/**
+ * Enemies Interface
+ * Sasha Barazandeh
+ * 2019-12-23
+ */
+public interface  Enemies extends Movement {
+  
+  public abstract void destroy();
+  public abstract void seekPlayer(int x, int y);
+  
+  
+}

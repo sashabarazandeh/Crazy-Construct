@@ -1,0 +1,28 @@
+/**
+ * CrazyConstruct.java
+ * @George Li
+ * @2020/01/20
+ * Timer used as game condition in game panel
+ */
+import java.util.Timer; 
+import java.util.TimerTask; 
+
+class GameTimer implements GameConstants {
+    private int secondsLeft = GAME_TIME;
+    Timer timer = new Timer();
+    
+    TimerTask task = new TimerTask(){
+        public void run(){
+            secondsLeft--;
+        }
+    };
+    public void start(){
+        timer.scheduleAtFixedRate(task,2000,1000);
+    }
+    public void cancel(){
+        timer.cancel();
+    }
+    public int getTimeLeft(){
+        return this.secondsLeft;
+    }
+}
